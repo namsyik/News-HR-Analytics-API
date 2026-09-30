@@ -112,11 +112,11 @@ def search_articles(
         params["title"] = f"%{title}%"
 
     if date_from:
-        where_clauses.append("published_at >= :date_from::timestamp")
+        where_clauses.append("published_at >= CAST(:date_from AS TIMESTAMP)")
         params["date_from"] = date_from
 
     if date_to:
-        where_clauses.append("published_at <= :date_to::timestamp + interval '1 day'")
+        where_clauses.append("published_at <= CAST(:date_to AS TIMESTAMP) + interval '1 day'")
         params["date_to"] = date_to
 
     where_sql = " AND ".join(where_clauses)

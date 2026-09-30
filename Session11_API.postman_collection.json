@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "Session 10 — News & HR Analytics API",
-    "description": "Two data pipelines, one API.\n\n**Path A (ETL):** Scraped articles → cleaned → loaded\n**Path B (ELT):** Raw CSV → loaded → SQL transforms\n\n## Setup\n1. Set `base_url` variable (default: http://localhost:8000)\n2. Run \"Get JWT Token\" first — it auto-saves the token\n3. All protected endpoints use API Key by default\n4. Switch to Bearer token in the JWT folder\n\n## Auth Methods\n- **API Key:** X-API-Key header\n- **JWT Bearer:** POST /token → use access_token",
+    "name": "Session 11 — Mini Project 2 API",
+    "description": "Postman Collection untuk Mini Project 2.\n\nMemiliki test cases lengkap untuk:\n- TASK 1: Article Search dengan Pagination\n- TASK 2: Article Stats per Source\n- TASK 3: Department Detail Endpoint (Attrition)\n- TASK 4: Attrition Risk Profile",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -104,7 +104,7 @@
               "host": ["{{base_url}}"],
               "path": ["token"]
             },
-            "description": "Exchange client credentials for a JWT token.\n\nThe test script auto-saves the token to the `jwt_token` collection variable so the JWT folder requests work immediately."
+            "description": "Exchange client credentials for a JWT token."
           }
         },
         {
@@ -168,22 +168,147 @@
       "description": "Authentication flow and negative tests."
     },
     {
-      "name": "3. Articles (ETL) — API Key",
+      "name": "3. Articles (ETL) — Mini Project 2 Tasks",
       "item": [
         {
-          "name": "Article Stats (total + per source)",
+          "name": "TASK 1.1 — Article Search (Default Pagination)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status 200', function() {",
+                  "pm.test('Status code is 200', function () {",
                   "    pm.response.to.have.status(200);",
                   "});",
-                  "pm.test('Has total and by_source', function() {",
-                  "    var json = pm.response.json();",
-                  "    pm.expect(json).to.have.property('total_articles');",
-                  "    pm.expect(json).to.have.property('by_source');",
+                  "pm.test('Pagination structure exists', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('data');",
+                  "    pm.expect(jsonData).to.have.property('page', 1);",
+                  "    pm.expect(jsonData).to.have.property('per_page', 10);",
+                  "    pm.expect(jsonData).to.have.property('total_items');",
+                  "    pm.expect(jsonData).to.have.property('total_pages');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/articles/search",
+              "host": ["{{base_url}}"],
+              "path": ["articles", "search"]
+            },
+            "description": "Screenshot 1 untuk Laporan: GET /articles/search tanpa filter."
+          }
+        },
+        {
+          "name": "TASK 1.2 — Article Search (Filter Source + Date)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/articles/search?source=bbc&date_from=2024-01-01",
+              "host": ["{{base_url}}"],
+              "path": ["articles", "search"],
+              "query": [
+                {
+                  "key": "source",
+                  "value": "bbc"
+                },
+                {
+                  "key": "date_from",
+                  "value": "2024-01-01"
+                }
+              ]
+            },
+            "description": "Screenshot 2 untuk Laporan: GET /articles/search dengan filter source + date_from."
+          }
+        },
+        {
+          "name": "TASK 1.3 — Article Search (Page 2 Pagination)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Page is 2', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.page).to.eql(2);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/articles/search?page=2&per_page=10",
+              "host": ["{{base_url}}"],
+              "path": ["articles", "search"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "2"
+                },
+                {
+                  "key": "per_page",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Screenshot 3 untuk Laporan: GET /articles/search page 2."
+          }
+        },
+        {
+          "name": "TASK 2 — Article Stats",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Has total_articles and by_source', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('total_articles');",
+                  "    pm.expect(jsonData).to.have.property('by_source');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -203,148 +328,35 @@
               "host": ["{{base_url}}"],
               "path": ["articles", "stats"]
             },
-            "description": "Total article count with breakdown per source (bbc, nytimes, books.toscrape, etc)."
+            "description": "Screenshot 4 untuk Laporan: GET /articles/stats total & breakdown per source."
           }
-        },
+        }
+      ],
+      "description": "Endpoints tugas ETL Mini Project 2."
+    },
+    {
+      "name": "4. Attrition (ELT) — Mini Project 2 Tasks",
+      "item": [
         {
-          "name": "List Articles (no filter)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-API-Key",
-                "value": "{{api_key}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/articles?limit=5",
-              "host": ["{{base_url}}"],
-              "path": ["articles"],
-              "query": [
-                {
-                  "key": "limit",
-                  "value": "5"
-                }
-              ]
-            },
-            "description": "List latest 5 articles, no filter."
-          }
-        },
-        {
-          "name": "List Articles — Filter by Source",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-API-Key",
-                "value": "{{api_key}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/articles?source=books.toscrape&limit=5",
-              "host": ["{{base_url}}"],
-              "path": ["articles"],
-              "query": [
-                {
-                  "key": "source",
-                  "value": "books.toscrape"
-                },
-                {
-                  "key": "limit",
-                  "value": "5"
-                }
-              ]
-            },
-            "description": "Filter articles by source. Try: bbc, nytimes, cnn, books.toscrape, quotes.toscrape"
-          }
-        },
-        {
-          "name": "List Articles — Search by Title",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-API-Key",
-                "value": "{{api_key}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/articles?title=love&limit=5",
-              "host": ["{{base_url}}"],
-              "path": ["articles"],
-              "query": [
-                {
-                  "key": "title",
-                  "value": "love"
-                },
-                {
-                  "key": "limit",
-                  "value": "5"
-                }
-              ]
-            },
-            "description": "Case-insensitive partial match on article title."
-          }
-        },
-        {
-          "name": "List Articles — Source + Title",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-API-Key",
-                "value": "{{api_key}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/articles?source=quotes.toscrape&title=life&limit=5",
-              "host": ["{{base_url}}"],
-              "path": ["articles"],
-              "query": [
-                {
-                  "key": "source",
-                  "value": "quotes.toscrape"
-                },
-                {
-                  "key": "title",
-                  "value": "life"
-                },
-                {
-                  "key": "limit",
-                  "value": "5"
-                }
-              ]
-            },
-            "description": "Combine source and title filters."
-          }
-        },
-        {
-          "name": "Get Article by ID",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-API-Key",
-                "value": "{{api_key}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/articles/1",
-              "host": ["{{base_url}}"],
-              "path": ["articles", "1"]
-            },
-            "description": "Get a single article by database ID. Change the ID in the URL."
-          }
-        },
-        {
-          "name": "Get Article — Not Found (should 404)",
+          "name": "TASK 3 — Department Detail (Sales)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Returns 404', function() {",
-                  "    pm.response.to.have.status(404);",
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Department details match schema', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('department');",
+                  "    pm.expect(jsonData).to.have.property('total_employees');",
+                  "    pm.expect(jsonData).to.have.property('attrition_count');",
+                  "    pm.expect(jsonData).to.have.property('attrition_rate');",
+                  "    pm.expect(jsonData).to.have.property('avg_income');",
+                  "    pm.expect(jsonData).to.have.property('min_income');",
+                  "    pm.expect(jsonData).to.have.property('max_income');",
+                  "    pm.expect(jsonData).to.have.property('top_earners').that.is.an('array');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -360,177 +372,73 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/articles/999999",
+              "raw": "{{base_url}}/attrition/department/Sales",
               "host": ["{{base_url}}"],
-              "path": ["articles", "999999"]
+              "path": ["attrition", "department", "Sales"]
             },
-            "description": "Verify 404 for non-existent article ID."
+            "description": "Screenshot 5 untuk Laporan: GET /attrition/department/Sales."
           }
-        }
-      ],
-      "description": "ETL path — scraped articles, cleaned in Pandas, loaded to DB.\nAll requests use API Key auth."
-    },
-    {
-      "name": "4. Attrition (ELT) — API Key",
-      "item": [
+        },
+        {
+          "name": "TASK 4 — Attrition Risk Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Returns array of high risk employees', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/attrition/risk-profile?limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["attrition", "risk-profile"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Screenshot 6 untuk Laporan: GET /attrition/risk-profile."
+          }
+        },
         {
           "name": "Attrition Summary",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 200', function() {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "pm.test('Has expected fields', function() {",
-                  "    var json = pm.response.json();",
-                  "    pm.expect(json).to.have.property('total_employees');",
-                  "    pm.expect(json).to.have.property('attrition_rate');",
-                  "});"
-                ],
-                "type": "text/javascript"
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
               }
+            ],
+            "url": {
+              "raw": "{{base_url}}/attrition/summary",
+              "host": ["{{base_url}}"],
+              "path": ["attrition", "summary"]
             }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-API-Key",
-                "value": "{{api_key}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/attrition/summary",
-              "host": ["{{base_url}}"],
-              "path": ["attrition", "summary"]
-            },
-            "description": "Overall attrition: total employees, yes/no count, rate."
-          }
-        },
-        {
-          "name": "Attrition by Department",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-API-Key",
-                "value": "{{api_key}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/attrition/by-department",
-              "host": ["{{base_url}}"],
-              "path": ["attrition", "by-department"]
-            },
-            "description": "Attrition rate + avg income per department.\nSQL: GROUP BY + FILTER + AVG (from transform_attrition.sql queries 1 & 2)."
-          }
-        },
-        {
-          "name": "Attrition by Overtime",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-API-Key",
-                "value": "{{api_key}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/attrition/by-overtime",
-              "host": ["{{base_url}}"],
-              "path": ["attrition", "by-overtime"]
-            },
-            "description": "Attrition rate by overtime status.\nSQL: GROUP BY cross-tab (from transform_attrition.sql query 4)."
-          }
-        },
-        {
-          "name": "Attrition by Tenure",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-API-Key",
-                "value": "{{api_key}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/attrition/by-tenure",
-              "host": ["{{base_url}}"],
-              "path": ["attrition", "by-tenure"]
-            },
-            "description": "Attrition rate by tenure bucket (new <2y, mid 2-5y, veteran 5y+).\nSQL: CASE WHEN (from transform_attrition.sql query 3)."
-          }
-        },
-        {
-          "name": "Top Earners by Department",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-API-Key",
-                "value": "{{api_key}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/attrition/top-earners?limit_per_dept=3",
-              "host": ["{{base_url}}"],
-              "path": ["attrition", "top-earners"],
-              "query": [
-                {
-                  "key": "limit_per_dept",
-                  "value": "3"
-                }
-              ]
-            },
-            "description": "Top N earners per department.\nSQL: RANK() OVER (PARTITION BY ... ORDER BY ...) window function (from transform_attrition.sql query 5)."
           }
         }
       ],
-      "description": "ELT path — raw CSV loaded to DB, transformed with SQL at query time.\nAll requests use API Key auth.\n\n⚠️ If these return 500, the attrition table doesn't exist yet. Run:\npython pipeline.py --attrition-csv employee_attrition.csv"
-    },
-    {
-      "name": "5. JWT Auth Flow",
-      "item": [
-        {
-          "name": "Attrition Summary (JWT)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/attrition/summary",
-              "host": ["{{base_url}}"],
-              "path": ["attrition", "summary"]
-            },
-            "description": "Same endpoint as folder 4, but using JWT Bearer token instead of API Key.\n\n⚠️ Run \"Get JWT Token\" first (folder 2) — it auto-saves the token."
-          }
-        },
-        {
-          "name": "Articles Stats (JWT)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/articles/stats",
-              "host": ["{{base_url}}"],
-              "path": ["articles", "stats"]
-            },
-            "description": "Same endpoint as folder 3, but using JWT Bearer token.\n\nDemonstrates that both auth methods work on the same endpoints."
-          }
-        }
-      ],
-      "description": "Same endpoints but using JWT Bearer token.\n\nRun \"Get JWT Token\" in folder 2 first — the test script auto-saves the token to the jwt_token variable."
+      "description": "Endpoints tugas ELT Mini Project 2."
     }
   ]
 }
